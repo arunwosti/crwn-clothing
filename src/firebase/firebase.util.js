@@ -1,10 +1,11 @@
 
-import { initializeApp } from 'firebase/app';
+import firebase from 'firebase/app';
+import 'firebase/firestore';
+import 'firebase/auth'
 
-import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 
 
-const firebaseConfig = {
+const config = {
     apiKey: "AIzaSyBjqx76KrrVqKF0T00cUfYqSYEDCXAMU5w",
     authDomain: "crwn-clothing-db-2e25c.firebaseapp.com",
     projectId: "crwn-clothing-db-2e25c",
@@ -14,20 +15,48 @@ const firebaseConfig = {
     measurementId: "G-KM76KCX0V1"
   };
 
+export const createUserProfileDocument = async (userAuth, additionalData) => {
+  if(!userAuth) return;
 
+  const userRef = firestore.doc('users/${userAuth.uid}' );
+  
+  const snapShot = await userRef.get();
+  
+  if(!snapShot.exists){
+    const {displayName, email} = userAuth;
+    const createdAt = new Date();
 
-  const app = initializeApp(firebaseConfig);
+    try {
+       userRef.set({
+        displayName,
+        email,
+        createdAt,
+        ...additionalData
+      })
+    } catch (error) {
+      console.log('error creating users', error.message);
+    }
+  }
+return userRef;
+}
+
+  firebase.initializeApp(config);
+
+  
 
 
 
 
   
 
-  export const auth = getAuth(app);
- // export const firestore = firebase.firestore();
+  export const auth = firebase.auth();
+  export const firestore = firebase.firestore();
 
-  const provider = new GoogleAuthProvider();
+  const provider = new firebase.auth.GoogleAuthProvider();
   provider.setCustomParameters({'prompt' :'select_account'});
-  export const signInWithGoogle =() => signInWithPopup(auth, provider);
+  export const signInWithGoogle =() => auth.signInWithPopup(provider);
+
+
+  export default firebase;
 
  
